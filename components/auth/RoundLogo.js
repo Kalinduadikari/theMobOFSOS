@@ -1,13 +1,26 @@
 import React from 'react';
 import { View, Image} from 'react-native';
 
-const RoundLogo = () => (
+const RoundLogo = ({children}) => (
 <View
     style={{
         justifyContent: "center",
         alignItems: "center",
+        paddingTop: 10,
+        paddingBottom: 20,
     }}
     >
+    <View style={{
+        backgroundColor: "white",
+        height: 190,
+        width: 190,
+        borderRadius: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    }}>
+    {children ? ( 
+     children
+    ) : (
     <Image 
     source={require("../../assets/appstore.png")}
     style={{
@@ -16,6 +29,8 @@ const RoundLogo = () => (
         marginVertical: 50,
     }}
      />
+     )}
+    </View>
 </View>
 
 );

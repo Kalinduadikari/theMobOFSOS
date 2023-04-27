@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useContext, useEffect } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -17,37 +17,34 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ShoppingCartIcon } from 'react-native-heroicons/outline';
-
-const products = [
-    { id: 1, name: 'PARAW', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330026--01--1615287995.webp', price: 'Rs 299.00' },
-    { id: 2, name: 'PRAWNS', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330031--01--1549601979.webp', price: 'Rs 299.00'  },
-    { id: 3, name: 'TUNA', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330049--01--1630600321.webp', price: 'Rs 299.00'  },
-    { id: 4, name: 'HENDELLA', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330015--01--1630854399.webp', price: 'Rs 299.00'  },
-    { id: 5, name: 'LINNA', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330021--1--1560487777.webp', price: 'Rs 299.00'  },
-    { id: 6, name: 'SUDAYA', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330042--01--1630854399.webp', price: 'Rs 299.00'  },
-    { id: 7, name: 'THALAPATH', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330045--1--1560487777.webp' , price: 'Rs 299.00' },
-    { id: 8, name: 'WHITE MULLETE', image: 'https://objectstorage.ap-mumbai-1.oraclecloud.com/n/softlogicbicloud/b/cdn/o/products/330053--01--1630854399.webp' , price: 'Rs 299.00' },
-    { id: 9, name: 'Product 9', image: 'https://via.placeholder.com/150', price: 'Rs 299.00'  },
-    { id: 10, name: 'Product 10', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 11, name: 'Product 11', image: 'https://via.placeholder.com/150', price: 'Rs 299.00'  },
-    { id: 12, name: 'Product 12', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 13, name: 'Product 13', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 14, name: 'Product 14', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 15, name: 'Product 15', image: 'https://via.placeholder.com/150', price: 'Rs 299.00'  },
-    { id: 16, name: 'Product 16', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 17, name: 'Product 17', image: 'https://via.placeholder.com/150', price: 'Rs 299.00'  },
-    { id: 18, name: 'Product 18', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 19, name: 'Product 19', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-    { id: 20, name: 'Product 20', image: 'https://via.placeholder.com/150', price: 'Rs 299.00' },
-  ];
-
+import { AuthContext } from "../context/auth";
+import axios from 'axios';
+import { LogBox } from 'react-native';
 
 
   const HomeScreen = () => {
+
+    const [products, setProducts] = useState([]);
+    const [ state, setState ] = useContext(AuthContext);
     const navigation = useNavigation();
     const [searchQuery, setSearchQuery] = useState('');
+    const [productContainerHeight, setProductContainerHeight] = useState(0);
+     LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered.']);
+
    
     const searchContainerWidth = useSharedValue(100);
+
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('/products/getAllProducts');
+        const data = response.data;
+        console.log('Products fetched:', data);
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    
 
     const animatedSearchContainerStyle = useAnimatedStyle(() => {
       return {
@@ -65,65 +62,100 @@ const products = [
       searchContainerWidth.value = 100;
     };
 
+    useEffect(() => {
+      fetchProducts();
+    }, []);
+
     useLayoutEffect(() => {
-        navigation.setOptions({
-           headerShown: true,
-           headerRight: () => (
-             <TouchableOpacity style={{ marginRight: 18 }}>
-               <Icon name="cart-outline" size={24} color="#027bff" />
-             </TouchableOpacity>
-           ),
-        });
-      }, []);
+      navigation.setOptions({
+        headerLeft: () => (
+          <TouchableOpacity
+            style={{ marginLeft: 20 }}
+            onPress={() => navigation.openDrawer()}
+          >
+            <Icon name="menu" size={24} color="#0A8791" />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity
+            style={{ marginRight: 27 }}
+            onPress={() => navigation.navigate('CartScreen')}
+          >
+            <Icon name="cart" size={24} color="#0A8791" />
+          </TouchableOpacity>
+        ),
+
+      });
+    }, [navigation]);
+
 
       const handleProductPress = (productId) => {
         // Navigate to product details screen
         navigation.navigate('ProductDetails', { productId });
       };
 
-      const renderItem = ({ item }) => {
-        // Render the product only if it matches the search query
-        const parsedPrice = parseFloat(item.price.replace(/[^0-9.]/g, ""));
-        const price = parsedPrice ? `LKR ${parsedPrice.toFixed(2)}` : "N/A";
-        if (searchQuery && !item.name.toUpperCase().includes(searchQuery.toUpperCase())) {
-        return null;
-            }
-            return (
-                <TouchableOpacity
+
+      const onProductContainerLayout = (event) => {
+        const { height } = event.nativeEvent.layout;
+        if (height !== productContainerHeight) {
+          setProductContainerHeight(height);
+        }
+      };
+      
+
+
+        const renderItem = ({ item, index }) => {
+          const price = item.price ? `Rs.${item.price.toFixed(2)}` : "N/A";
+          if (searchQuery && !item.name.toUpperCase().includes(searchQuery.toUpperCase())) {
+            return null;
+          }
+
+          const translateY = index % 2 === 1 ? -productContainerHeight / 3 : 0;
+
+          return (
+            <View
+              style={{
+                flex: 1,
+                margin: 20,
+                paddingBottom: -195,
+                paddingTop: 130,
+                transform: [{ translateY }],
+              }}
+            >
+              <TouchableOpacity
                 style={styles.productContainer}
-                onPress={() => handleProductPress(item.id)}
-                >
-                <Image
-                    source={{ uri: item.image }}
+                onPress={() => handleProductPress(item._id)}
+                onLayout={onProductContainerLayout}
+              >
+                {item.image && (
+                  <Image
+                    source={{ uri: item.image.url }}
                     style={styles.productImage}
-                />
-                <Text style={styles.productName}>
-                    {item.name}
-                </Text>
-
-                <Text style={styles.productPrice}>
-                        {price}
-                    </Text>
-
-              <TouchableOpacity>
-              <View style={styles.addToCartButton}>
+                    resizeMode="contain"
+                  />
+                )}
+                <Text style={styles.productName}>{item.name}</Text>
                 <Text style={{ marginRight: 5 }}>In stock</Text>
-                <ShoppingCartIcon size={18} />
-              </View>
+                    <ShoppingCartIcon size={18} color="#0A8791" />
+                <Text style={styles.productPrice}>{price}</Text>
+                <TouchableOpacity>
+                  <View style={styles.addToCartButton}>
+                    
+                  </View>
+                </TouchableOpacity>
+                <View></View>
               </TouchableOpacity>
-              
-            </TouchableOpacity>
-            
+            </View>
           );
-            
         };
+  
 
         const handleSearch = (text) => {
         setSearchQuery(text);
         };
         
         return (
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#ebeaee", }}>
             {/* Header */}
             <View
             style={{
@@ -148,71 +180,100 @@ const products = [
 
             {/* Search and Adjustment icon */}
             <View style={styles.searchContainer}>
-        <View style={styles.searchBox}>
-            <Animated.View
+              <View style={styles.searchBarContainer}>
+                <Animated.View
             style={[
                 styles.animatedInputContainer,
                 animatedSearchContainerStyle,
             ]}
             >
             <TouchableOpacity onPress={onFocus} style={styles.searchIcon}>
-                <Icon name="search-outline" size={24} color="#027bff" />
+                <Icon name="search-outline" size={24} color="#0A8791" />
+                  </TouchableOpacity>
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search for products"
+                      placeholderTextColor="#999"
+                      onChangeText={handleSearch}
+                      value={searchQuery}
+                      onFocus={onFocus}
+                      onBlur={onBlur}
+                     />
+                  </Animated.View>
+              </View>
+              <TouchableOpacity style={styles.filterIconContainer}>
+               <Icon name="options-outline" size={24} color="#0A8791" />
             </TouchableOpacity>
-            <TextInput
-                style={styles.searchInput}
-                placeholder="Search for products"
-                placeholderTextColor="#999"
-                onChangeText={handleSearch}
-                value={searchQuery}
-                onFocus={onFocus}
-                onBlur={onBlur}
-            />
-            </Animated.View>
-        </View>
-        <TouchableOpacity style={styles.adjustmentIcon}>
-        <Icon name="options-outline" size={24} color="#027bff" />
-         </TouchableOpacity>
         </View>
           
-    {/* Product list */}
-    <FlatList
-        data={products}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={{ padding: 10 }}
-        
-    />
+        {/* Product list */}
+              <FlatList
+              data={products}
+              keyExtractor={(item) => item._id.toString()}
+              renderItem={renderItem}
+              numColumns={2}
+              contentContainerStyle={{
+              paddingLeft: 20, // Increase this value to add space on the left
+              paddingRight: 20, // Increase this value to add space on the right
+            }}
+          />
+
+
        
     </SafeAreaView>
     );
     };
 
     const styles = StyleSheet.create({
-        searchContainer: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: '#fff',
-          paddingHorizontal: 8,
-          paddingVertical: 8,
-          marginHorizontal: 10,
-          borderRadius: 30,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.1,
-          shadowRadius: 5,
-          elevation: 4,
-        },
+      searchContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 8,
+        marginHorizontal: 10,
+        marginTop: 10,
+      },
+    
+      searchBarContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingHorizontal: 0,
+        paddingVertical: 8,
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 4,
+      },
+    
+      filterIconContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingHorizontal: 8,
+        paddingVertical: 8,
+        marginLeft: 10,
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 4,
+      },
       
         animatedInputContainer: {
           flexDirection: 'row',
           alignItems: 'center',
-          borderRadius: 25,
+          borderRadius: 15,
           borderWidth: 1,
           borderColor: '#ddd',
           backgroundColor: '#fff',
           paddingLeft: 10,
-          paddingRight: 5,
+          paddingRight: 2,
           width: '100%',
         },
       
@@ -225,7 +286,7 @@ const products = [
         searchInput: {
           fontSize: 16,
           flex: 1,
-          padding: 8,
+          padding: 2,
           borderRadius: 25,
           backgroundColor: 'transparent',
           fontFamily: 'Arial',
@@ -241,18 +302,21 @@ const products = [
         },
 
         productContainer: {
-          flex: 0.5,
-          margin: 10,
-          backgroundColor: '#fff',
-          borderRadius: 10,
+          height:300,
+          flex: 1,
+          margin: -4,
+          backgroundColor: '#ffffff',
+          borderRadius: 25,
           padding: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.2,
           shadowRadius: 4,
           elevation: 4,
-        },
+          marginBottom: -139,
 
+        },
+        
         productImage: {
           width: '100%',
           aspectRatio: 1,
@@ -267,9 +331,10 @@ const products = [
         },
 
         productPrice: {
-          marginBottom: 10,
-          textAlign: 'center',
+          marginTop:  30,
+          textAlign: 'left',
           fontWeight: 'bold',
+          fontSize: 20,
         },
 
         addToCartButton: {
