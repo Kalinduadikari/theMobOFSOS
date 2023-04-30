@@ -99,7 +99,7 @@ const Account = ({ navigation }) => {
     //context updation
     setState({...state, user: data});
     setImage(data.image);
-    alert("👍 PROFILE IMAGE SAVED");
+    alert("✅ Profile picture updated successfully");
 
   };
   

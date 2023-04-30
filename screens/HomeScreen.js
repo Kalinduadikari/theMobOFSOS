@@ -104,50 +104,61 @@ import { LogBox } from 'react-native';
       
 
 
-        const renderItem = ({ item, index }) => {
-          const price = item.price ? `Rs.${item.price.toFixed(2)}` : "N/A";
-          if (searchQuery && !item.name.toUpperCase().includes(searchQuery.toUpperCase())) {
-            return null;
-          }
-
-          const translateY = index % 2 === 1 ? -productContainerHeight / 3 : 0;
-
-          return (
-            <View
-              style={{
-                flex: 1,
-                margin: 20,
-                paddingBottom: -195,
-                paddingTop: 130,
-                transform: [{ translateY }],
-              }}
+      const renderItem = ({ item, index }) => {
+        const price = item.price ? `Rs.${item.price.toFixed(2)}` : "N/A";
+        if (searchQuery && !item.name.toUpperCase().includes(searchQuery.toUpperCase())) {
+          return null;
+        }
+      
+        const translateY = index % 2 === 1 ? -productContainerHeight / 3 : 0;
+      
+        return (
+          <View
+            style={{
+              width: '50%', // Set the width to 50% for even distribution
+              padding: 20, // Add padding to replace margin
+              transform: [{ translateY }],
+            }}
+          >
+            <TouchableOpacity
+              style={styles.productContainer}
+              onPress={() => handleProductPress(item._id)}
+              onLayout={onProductContainerLayout}
             >
-              <TouchableOpacity
-                style={styles.productContainer}
-                onPress={() => handleProductPress(item._id)}
-                onLayout={onProductContainerLayout}
-              >
-                {item.image && (
-                  <Image
-                    source={{ uri: item.image.url }}
-                    style={styles.productImage}
-                    resizeMode="contain"
-                  />
-                )}
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={{ marginRight: 5 }}>In stock</Text>
-                    <ShoppingCartIcon size={18} color="#0A8791" />
-                <Text style={styles.productPrice}>{price}</Text>
-                <TouchableOpacity>
-                  <View style={styles.addToCartButton}>
-                    
-                  </View>
-                </TouchableOpacity>
-                <View></View>
+              {item.image && (
+                <Image
+                  source={{ uri: item.image.url }}
+                  style={styles.productImage}
+                  resizeMode="contain"
+                />
+              )}
+              <Text style={styles.productName}>{item.name}</Text>
+              <Text style={{ marginRight: 5 }}>In stock</Text>
+              <ShoppingCartIcon size={18} color="#0A8791" />
+              <Text style={styles.productPrice}>{price}</Text>
+              <TouchableOpacity>
+                <View style={styles.addToCartButton}></View>
               </TouchableOpacity>
-            </View>
-          );
-        };
+              <View></View>
+            </TouchableOpacity>
+          </View>
+        );
+      };
+      
+      
+      // Add this function to create a placeholder view
+      const renderPlaceholderView = () => {
+        return (
+          <View
+            style={[
+              styles.productContainer,
+              { opacity: 0, height: productContainerHeight },
+            ]}
+          />
+        );
+      };
+      
+      
   
 
         const handleSearch = (text) => {
@@ -155,7 +166,7 @@ import { LogBox } from 'react-native';
         };
         
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#ebeaee", }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5", }}>
             {/* Header */}
             <View
             style={{
@@ -175,6 +186,7 @@ import { LogBox } from 'react-native';
             }}
             />
             </View>
+           
          
       </View>
 
@@ -206,20 +218,48 @@ import { LogBox } from 'react-native';
             </TouchableOpacity>
         </View>
           
-        {/* Product list */}
-              <FlatList
-              data={products}
-              keyExtractor={(item) => item._id.toString()}
-              renderItem={renderItem}
-              numColumns={2}
-              contentContainerStyle={{
-              paddingLeft: 20, // Increase this value to add space on the left
-              paddingRight: 20, // Increase this value to add space on the right
-            }}
-          />
-
-
        
+           
+        {/* Product list */}
+      
+          
+          <FlatList
+                  data={products}
+                  keyExtractor={(item) => item._id.toString()}
+                  renderItem={renderItem}
+                  numColumns={2}
+                  contentContainerStyle={{
+                    paddingLeft: 20,
+                    paddingRight: 20,
+                  }}
+                  ListHeaderComponent={() => (
+                    <View
+                      style={{
+                        flexDirection: "column",
+                        marginTop: 10,
+                        marginBottom: 10,
+                        marginLeft: 15,
+                      }}
+                    >
+                      <Text
+                        style={
+                          products.length > 0
+                            ? { fontFamily: "SF-Pro-Display-Bold", fontSize: 32 }
+                            : { fontFamily: "SF-Pro-Display-Bold", fontSize: 32 }
+                        }
+                      >
+                        {products.length > 0
+                          ? `Found\n${products.length} results`
+                          : "No Products Found!"}
+                      </Text>
+                    </View>
+                  )}
+                  ListFooterComponent={
+                    products.length % 2 === 1 ? renderPlaceholderView() : null
+                  }
+                />
+
+
     </SafeAreaView>
     );
     };
@@ -313,7 +353,7 @@ import { LogBox } from 'react-native';
           shadowOpacity: 0.2,
           shadowRadius: 4,
           elevation: 4,
-          marginBottom: -139,
+          marginBottom: -12,
 
         },
         
@@ -328,6 +368,7 @@ import { LogBox } from 'react-native';
           marginBottom: 5,
           textAlign: 'center',
           fontWeight: 'bold',
+          fontFamily: 'SF-Pro-Display-Bold',
         },
 
         productPrice: {
@@ -335,6 +376,7 @@ import { LogBox } from 'react-native';
           textAlign: 'left',
           fontWeight: 'bold',
           fontSize: 20,
+          fontFamily: 'OpenSans-Bold'
         },
 
         addToCartButton: {
